@@ -27,7 +27,7 @@
 @synthesize centerLabel = _centerLabel;
 @synthesize maximumDate = _maximumDate;
 @synthesize minimumDate = _minimumDate;
-
+@synthesize minuteInterval = _minuteInterval;
 
 - (QDateTimeInlineElement *)init {
     self = [super init];
