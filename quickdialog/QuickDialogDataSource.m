@@ -33,6 +33,7 @@
     QSection *section = [_tableView.root getSectionForIndex:indexPath.section];
     QElement *element = [section.elements objectAtIndex:(NSUInteger) indexPath.row];
     UITableViewCell *cell = [element getCellForTableView:(QuickDialogTableView *) tableView controller:_tableView.controller];
+    cell.backgroundColor = [UIColor whiteColor];
     return cell;
 }
 
