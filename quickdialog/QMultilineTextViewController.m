@@ -50,6 +50,15 @@
     self.view = _textView;
 }
 
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+
+    if ([self respondsToSelector:@selector(setEdgesForExtendedLayout:)]) {
+        [self setEdgesForExtendedLayout:UIRectEdgeNone];
+    }
+}
+
 - (void)viewWillAppear:(BOOL)animated
 {
     _viewOnScreen = YES;
