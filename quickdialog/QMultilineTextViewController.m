@@ -79,31 +79,39 @@
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
 }
 
+- (void)keyboardWillShow:(NSNotification *)notification {
+    CGRect keyboardFrame = [[notification.userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] CGRectValue];
+    NSTimeInterval animationDuration = [[notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey] doubleValue];
 
-- (void) resizeForKeyboard:(NSNotification*)aNotification {
-    if (!_viewOnScreen)
-        return;
+    BOOL isPortrait = UIDeviceOrientationIsPortrait([UIApplication sharedApplication].statusBarOrientation);
+    CGFloat keyboardHeight = isPortrait ? keyboardFrame.size.height : keyboardFrame.size.width;
 
-    BOOL up = aNotification.name == UIKeyboardWillShowNotification;
+    UIEdgeInsets contentInset = self.textView.contentInset;
+    contentInset.bottom = keyboardHeight;
 
-    if (_keyboardVisible == up)
-        return;
 
-    _keyboardVisible = up;
-    NSDictionary* userInfo = [aNotification userInfo];
-    NSTimeInterval animationDuration;
-    UIViewAnimationCurve animationCurve;
-    CGRect keyboardEndFrame;
-    [[userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] getValue:&animationCurve];
-    [[userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey] getValue:&animationDuration];
-    [[userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] getValue:&keyboardEndFrame];
+    UIEdgeInsets scrollIndicatorInsets = self.textView.scrollIndicatorInsets;
+    scrollIndicatorInsets.bottom = keyboardHeight;
 
-    [UIView animateWithDuration:animationDuration delay:0 options:animationCurve
-        animations:^{
-            CGRect keyboardFrame = [self.view convertRect:keyboardEndFrame toView:nil];
-            _textView.contentInset = UIEdgeInsetsMake(0.0, 0.0,  up ? keyboardFrame.size.height : 0, 0.0);
-        }
-        completion:NULL];
+    [UIView animateWithDuration:animationDuration animations:^{
+        self.textView.contentInset = contentInset;
+        self.textView.scrollIndicatorInsets = scrollIndicatorInsets;
+    }];
+}
+
+- (void)keyboardWillHide:(NSNotification *)notification {
+    NSTimeInterval animationDuration = [[notification.userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey] doubleValue];
+
+    UIEdgeInsets contentInset = self.textView.contentInset;
+    contentInset.bottom = 0;
+
+    UIEdgeInsets scrollIndicatorInsets = self.textView.scrollIndicatorInsets;
+    scrollIndicatorInsets.bottom = 0;
+
+    [UIView animateWithDuration:animationDuration animations:^{
+        self.textView.contentInset = contentInset;
+        self.textView.scrollIndicatorInsets = scrollIndicatorInsets;
+    }];
 }
 
 - (void)setResizeWhenKeyboardPresented:(BOOL)observesKeyboard {
@@ -111,8 +119,8 @@
     _resizeWhenKeyboardPresented = observesKeyboard;
 
     if (_resizeWhenKeyboardPresented) {
-      [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resizeForKeyboard:) name:UIKeyboardWillShowNotification object:nil];
-      [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(resizeForKeyboard:) name:UIKeyboardWillHideNotification object:nil];
+      [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+      [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
     } else {
       [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillShowNotification object:nil];
       [[NSNotificationCenter defaultCenter] removeObserver:self name:UIKeyboardWillHideNotification object:nil];
@@ -124,7 +132,6 @@
     if(_entryElement && _entryElement.delegate && [_entryElement.delegate respondsToSelector:@selector(QEntryDidBeginEditingElement:andCell:)]){
         [_entryElement.delegate QEntryDidBeginEditingElement:_entryElement andCell:self.entryCell];
     }
-
 }
 
 - (void)textViewDidEndEditing:(UITextView *)textView {
@@ -147,11 +154,25 @@
 }
 
 - (void)textViewDidChange:(UITextView *)textView {
+    [self _showTextViewCaretPosition:textView];
     _entryElement.textValue = textView.text;
 
     if(_entryElement && _entryElement.delegate && [_entryElement.delegate respondsToSelector:@selector(QEntryEditingChangedForElement:andCell:)]){
         [_entryElement.delegate QEntryEditingChangedForElement:_entryElement andCell:self.entryCell];
     }
+}
+
+- (void)textViewDidChangeSelection:(UITextView *)textView {
+    [self _showTextViewCaretPosition:textView];
+}
+
+- (void)_showTextViewCaretPosition:(UITextView *)textView {
+    CGRect caretRect = [textView caretRectForPosition:self.textView.selectedTextRange.end];
+    [textView scrollRectToVisible:caretRect animated:NO];
+}
+
+-(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
+    [self _showTextViewCaretPosition:self.textView];
 }
 
 
