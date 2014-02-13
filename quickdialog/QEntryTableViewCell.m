@@ -25,12 +25,14 @@
 -(UIToolbar *)createActionBar {
     UIToolbar *actionBar = [[UIToolbar alloc] init];
     actionBar.translucent = YES;
+    actionBar.tintColor = [UIColor whiteColor];
     [actionBar sizeToFit];
     actionBar.barStyle = UIBarStyleBlackTranslucent;
 
     UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Done", @"")
                                                                    style:UIBarButtonItemStyleDone target:self
                                                                   action:@selector(handleActionBarDone:)];
+    doneButton.tintColor = [UIColor whiteColor];
 
     _prevNext = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:NSLocalizedString(@"Previous", @""), NSLocalizedString(@"Next", @""), nil]];
     _prevNext.momentary = YES;
