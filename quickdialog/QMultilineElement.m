@@ -48,9 +48,19 @@
 }
 
 
-- (void)selected:(QuickDialogTableView *)tableView controller:(QuickDialogController *)controller indexPath:(NSIndexPath *)indexPath
-{
-    QMultilineTextViewController *textController = [[QMultilineTextViewController alloc] initWithTitle:self.title];
+- (void)selected:(QuickDialogTableView *)tableView controller:(QuickDialogController *)controller indexPath:(NSIndexPath *)indexPath {
+
+    __block QMultilineTextViewController *textController;
+
+    @try {
+        QuickDialogController *customController = [QuickDialogController controllerForRoot:self];
+        textController = (QMultilineTextViewController *)customController;
+        textController.title = self.title;
+    }
+    @catch (NSException *e) {
+        textController = [[QMultilineTextViewController alloc] initWithTitle:self.title];
+    }
+
     textController.entryElement = self;
     textController.entryCell = (QEntryTableViewCell *) [tableView cellForElement:self];
     textController.resizeWhenKeyboardPresented = YES;
